@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mqtt-bridge-config
+  namespace: iot
+data:
+  connect.yaml: |
+    input:
+      mqtt:
+        urls:
+          - tcp://mosquitto.iot.svc.cluster.local:1883
+        client_id: redpanda-connect-bridge
+        topics:
+          - sensores/#
+
+    output:
+      kafka_franz:
+        seed_brokers:
+          - redpanda-oci.redpanda.svc.cluster.local:19092
+        topic: iot-telemetria
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-redpanda-bridge
+  namespace: iot
+  labels:
+    app: mqtt-redpanda-bridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-redpanda-bridge
+  template:
+    metadata:
+      labels:
+        app: mqtt-redpanda-bridge
+    spec:
+      containers:
+        - name: redpanda-connect
+          image: docker.io/redpandadata/connect:latest
+          args:
+            - -c
+            - /etc/connect/connect.yaml
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/connect/connect.yaml
+              subPath: connect.yaml
+      volumes:
+        - name: config-volume
+          configMap:
+            name: mqtt-bridge-config
