@@ -12,7 +12,16 @@ spec:
   destination:
     server: https://k8s-local-api.argocd.svc.cluster.local
     namespace: iot
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      name: redpanda-oci
+      namespace: redpanda
+      jsonPointers:
+        - /spec/externalName
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true
