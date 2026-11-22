@@ -20,6 +20,8 @@ data:
         columns: ["criado_em", "device", "temperatura", "umidade"]
         args_mapping: |
           root = [ now(), this.device, this.temperatura, this.umidade ]
+        conn_max_open: 5
+        conn_max_idle: 2
         init_statement: |
           CREATE TABLE IF NOT EXISTS leituras_clima (
             id SERIAL PRIMARY KEY,
