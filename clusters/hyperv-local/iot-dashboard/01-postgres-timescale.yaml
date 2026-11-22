@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iot-pg-pvc
+  namespace: iot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: truenas-nfs
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iot-postgres
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iot-postgres
+  template:
+    metadata:
+      labels:
+        app: iot-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: timescale/timescaledb:latest-pg16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "iot_telemetria"
+            - name: POSTGRES_USER
+              value: "iot_user"
+            - name: POSTGRES_PASSWORD
+              value: "IotSenhaSegura2026"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          volumeMounts:
+            - name: pg-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: pg-storage
+          persistentVolumeClaim:
+            claimName: iot-pg-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iot-postgres
+  namespace: iot
+spec:
+  selector:
+    app: iot-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
