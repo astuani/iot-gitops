@@ -7,7 +7,7 @@ data:
   connect.yaml: |
     input:
       kafka:
-        addresses: ["redpanda-oci:19092"]
+        addresses: ["redpanda-oci.redpanda.svc.cluster.local:19092"]
         topics: ["iot-telemetria"]
         consumer_group: "cg-postgres-writer"
         start_from_oldest: true
